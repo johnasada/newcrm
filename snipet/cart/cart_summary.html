@@ -1,0 +1,163 @@
+{% extends "coreApp/base.html" %}
+{% load static %}
+{% load mathfilters %}
+
+{% block content %}
+
+<main class="pt-5 mt-5">
+
+    <div class="container">
+      <h1 class="h5"> Shopping cart </h1>
+
+	<hr>
+
+    <!-- Cart Loop -->
+    {% for item in cart %}
+
+    {% with product=item.product %}
+
+      <br>
+
+      <div class="row mb-4 border product-item">
+        <div class="col-md-3 col-lg-2 order-md-first bg-light">
+            <img class="img-fluid mx-auto d-block mt-5" width="200px" alt="Responsive image" src="{{ product.image.url }}"> <!-- Product image -->
+        </div>
+
+        <div class="col-md-9 col-lg-10 ps-md-3 ps-lg-10">
+          <a href="{% url 'coreApp:detail' product.id %}" class="text-primary text-decoration-none"> <!-- text-reset Product get absolute url -->
+            <h1 class="h5 pt-2">{{ product.name }}</h1> <!-- Product title -->
+          </a>
+          <div class="border">
+            <div class="col border-bottom">
+                <div class="row p-3">
+                <div class="col-4"> Product </div>
+                <div class="col-4 text-end">Unit: ${{ product.price }} </div>
+                <div class="col-4 text-end"><span class="h6 fw-bold">${{ product.price|mul:item.qty }}</span></div><!-- Product price -->
+              </div>
+            </div>
+            <div class="col">
+              <div class="row p-3">
+                <div class="col-12">
+                  <label for="select">Qty</label>
+
+                  &nbsp;
+
+                  <select id="select{{product.id}}">
+                    <option selected>
+                        {{item.qty}} <!-- Displays the chosen product quantity -->
+                    </option>
+                    <option value="">1</option>
+                    <option value="">2</option>
+                    <option value="">3</option>
+                    <option value="">4</option>
+                  </select>
+
+                  <br> <br>
+
+                  <button type="button" data-index="{{ product.id }}"
+                    class="btn btn-primary btn-sm update-button">
+                    Update
+                  </button>
+
+                  &nbsp;
+
+                  <button type="button" data-index="{{ product.id }}"
+                    class="btn btn-danger btn-sm delete-button">
+                    Delete
+                  </button>
+                </div>
+            </div>
+            </div>
+            </div>
+        </div>
+    </div>
+      {% endwith %}
+    {% endfor %}
+
+    <!-- Cart Loop Ends here-->
+
+      <div class="col-12 text-end">
+        <div class="h6 fw-bold"> Sub total: $ <div id="total" class="d-inline-flex">{{ cart.get_total }}</div> <!-- cart.get_total -->
+        </div>
+      </div>
+    </div>
+    <br><br>
+ </main>
+<script>
+    // Delete button
+
+    $(document).on('click', '.delete-button', function(e){
+        e.preventDefault();
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "cart:cart-delete" %}',
+            data: {
+                product_id: $(this).data("index"),
+                csrfmiddlewaretoken: "{{csrf_token}}",
+                action: 'post'
+            },
+
+            success: function(json){
+
+                location.reload()
+
+                //console.log(json)
+
+                //Sets the text content of the cart-qty in base.html
+                //test to see if our cart adjusts automatically. remove the 0 for now.
+                document.getElementById("cart-qty").textContent = json.qty   // cart-qty is the id of the span tag in
+                                                                             // the base.html, which we are extending.
+                                                                             // json.qty is the quantity of the cart
+                                                                             // items which we are getting from the
+                                                                             // view > cart_delete view, as response.
+
+                document.getElementById("total").textContent = json.total    // total is the id of the div tag in the
+                                                                             // cart_summary.html, which we are extending.
+                                                                             // json.total is the total price of the cart
+                                                                             // items which we are getting from the
+                                                                             // view > cart_delete view, as response.
+            },
+
+            error: function(xhr, errmsg, err){
+
+            }
+        });
+    })
+
+    // Update button
+
+    $(document).on('click', '.update-button', function(e){
+        e.preventDefault();
+
+        var theproductid = $(this).data("index")
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "cart:cart-update" %}',
+            data: {
+                product_id: $(this).data("index"),
+                product_quantity: $("#select"+theproductid+" option:selected").text(),
+                csrfmiddlewaretoken: "{{csrf_token}}",
+                action: 'post'
+            },
+
+            success: function(json){
+
+                location.reload()
+
+                //console.log(json)
+                document.getElementById("cart-qty").textContent = json.qty
+                document.getElementById("total").textContent = json.total
+            },
+
+            error: function(xhr, errmsg, err){
+
+            }
+        });
+    })
+
+</script>
+
+{% endblock %}
+

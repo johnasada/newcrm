@@ -1,0 +1,24 @@
+<ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+    <li class="nav-item">
+        <a href="" class="btn btn-outline-warning">Cart<span class="text-white">0</span></a>
+    </li>
+</ul>
+<!--CART START -->
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+            <a href="{% url 'cart:cart-summary' %}" class="btn btn-outline-warning">
+              Cart
+              <span id="cart-qty" class="text-white">
+                {% with qty_amount=cart|length %}
+                  {% if qty_amount > 0 %}
+                    {{ qty_amount }}
+                  {% else %}
+                    0
+                  {% endif %}
+
+                {% endwith %}
+              </span>
+            </a>
+        </li>
+      </ul>
+      <!--CART END-->
